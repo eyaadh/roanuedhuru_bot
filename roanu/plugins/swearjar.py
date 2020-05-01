@@ -1,18 +1,19 @@
 import time
 from better_profanity import profanity
+from roanu.utils.common import RoanuCommon
 from pyrogram import Client, Message, Filters, Emoji, ChatPermissions
 
 swear_jar_counter = []
 
 
-@Client.on_message(Filters.chat(-1001258360705))
+@Client.on_message(Filters.chat(RoanuCommon.roanu_butler_chat), group=2)
 async def swear_jar_resp(c: Client, m: Message):
     global swear_jar_counter
 
     chat_admins = await c.get_chat_members(chat_id=m.chat.id, filter='administrators')
     chat_admins_list = [x['user']['id'] for x in chat_admins]
 
-    if m.from_user.id not in chat_admins_list:
+    if m.from_user.id not in chat_admins_list and not m.service:
         mention = f"<a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name}</a>"
         if profanity.contains_profanity(m.text):
             swear_jar_counter.append(m.from_user.id)

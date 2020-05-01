@@ -1,7 +1,8 @@
+from roanu.utils.common import RoanuCommon
 from pyrogram import Client, Message, Filters, Emoji
 
 
-@Client.on_message(Filters.new_chat_members & Filters.chat("CityofAddu"))
+@Client.on_message(Filters.new_chat_members & Filters.chat(RoanuCommon.roanu_butler_chat), group=1)
 async def new_chat_members(c: Client, m: Message):
     mentions = f"<a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name}</a>"
     welcome_msg = "{} Welcome to <a href='https://t.me/CityofAddu'>AdduCity Group</a>'s group chat! Keep your " \
@@ -12,5 +13,6 @@ async def new_chat_members(c: Client, m: Message):
 
     await m.reply_text(
         text=text,
-        parse_mode="html"
+        parse_mode="html",
+        disable_web_page_preview=True
     )

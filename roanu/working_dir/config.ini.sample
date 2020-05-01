@@ -1,0 +1,10 @@
+[pyrogram]
+api_id =
+api_hash =
+[plugins]
+root = roanu/plugins
+[bot-configuration]
+session_name = roanuedhuru
+api_key =
+workers = 200
+butler_chat = CityofAddu
