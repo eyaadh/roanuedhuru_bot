@@ -1,6 +1,7 @@
 import asyncio
 from pyrogram import Client
 from roanu.utils.common import RoanuCommon
+from better_profanity import profanity
 
 
 async def main():
@@ -11,6 +12,8 @@ async def main():
         workdir=RoanuCommon.roanu_working_dir,
         config_file=RoanuCommon.roanu_config_file
     )
+
+    profanity.add_censor_words(['ngbl', 'nagoobalha', 'balha'])
 
     await roanu.start()
     await roanu.idle()
