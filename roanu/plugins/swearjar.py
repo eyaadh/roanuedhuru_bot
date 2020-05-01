@@ -96,6 +96,7 @@ async def reset_counter(chat_id, user_id):
             text="I have removed the user from my counter for SwearJar."
         )
     else:
-        await m.reply_text(
+        await roanuedhuru.send_message(
+            chat_id=chat_id,
             text="Well that user is not in the SwearJar List"
         )
