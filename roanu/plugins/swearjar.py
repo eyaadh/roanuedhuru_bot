@@ -21,9 +21,9 @@ async def swear_jar_resp(c: Client, m: Message):
                 owe_value = swear_count * 10
                 await m.reply(
                     text=f"Hey {mention}! I guess you need to consider that you are at <b>a public chat</b> i.e. "
-                         f"talk with some respect! You owe {Emoji.MONEY_WITH_WINGS} <i>${owe_value}</i> "
-                         f"{Emoji.MONEY_WITH_WINGS} to Swearjar now, once you reach <b>$60</b> you will be "
-                         f"restricted for a day from sending messages within this chat.",
+                         f"talk with some respect! \nYou owe {Emoji.MONEY_WITH_WINGS} <i>${owe_value}</i> "
+                         f"{Emoji.MONEY_WITH_WINGS} to Swearjar now. \n<i>Once you reach <b>$60</b> you will be "
+                         f"restricted for a day from sending messages within this chat.</i>",
                     parse_mode="html"
                 )
             elif swear_count == 6:
