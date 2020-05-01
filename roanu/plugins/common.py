@@ -19,11 +19,11 @@ async def new_chat_members(c: Client, m: Message):
 
 
 @Client.on_message(Filters.command(commands=['start'], prefixes=['/', '!']))
-async def help_handler(c: Client, m: Message):
+async def start_handler(c: Client, m: Message):
     mention = f"<a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name}</a>"
     await m.reply_text(
         text=f"Hello {mention}! I am the butler build for {RoanuCommon.roanu_butler_chat}, a simple & sweet Open-source"
-             f" telegram bot. \n Source Code can be found <a href='https://github.com/eyaadh/roanuedhuru_bot'>here."
+             f" telegram bot. \nSource Code can be found <a href='https://github.com/eyaadh/roanuedhuru_bot'>here."
              f"</a>",
         parse_mode="html",
         disable_web_page_preview=True
