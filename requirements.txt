@@ -2,6 +2,6 @@ async-generator==1.10
 async-lru==1.0.1
 better-profanity==0.6.1
 pyaes==1.6.1
-Pyrogram===0.16.0.asyncio
-PySocks==1.7.0
+Pyrogram===0.17.0-async
+PySocks==1.7.1
 TgCrypto==1.2.0
