@@ -15,7 +15,7 @@ async def swear_jar_resp(c: Client, m: Message):
 
     if m.from_user.id not in chat_admins_list and not m.service:
         mention = f"<a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name}</a>"
-        if profanity.contains_profanity(str(m.text, encoding='utf-8', errors='ignore')):
+        if profanity.contains_profanity(m.text.encode('utf-8')):
             swear_jar_counter.append(m.from_user.id)
             swear_count = swear_jar_counter.count(m.from_user.id)
             if 3 <= swear_count < 6:
