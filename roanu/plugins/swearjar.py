@@ -1,13 +1,39 @@
+import time
 from better_profanity import profanity
-from pyrogram import Client, Message, Filters
-from roanu import swear_jar_counter
+from pyrogram import Client, Message, Filters, Emoji, ChatPermissions
+
+swear_jar_counter = []
 
 
-@Client.on_message(Filters.chat("CityofAddu"))
+@Client.on_message(Filters.chat(-1001258360705))
 async def swear_jar_resp(c: Client, m: Message):
-    if profanity.contains_profanity(m.text):
-        swear_jar_counter.append(m.from_user.id)
-        if swear_jar_resp.count(m.from_user.id) > 3:
-            await m.reply(
-                text="Hey mind your language!"
-            )
+    global swear_jar_counter
+
+    chat_admins = await c.get_chat_members(chat_id=m.chat.id, filter='administrators')
+    chat_admins_list = [x['user']['id'] for x in chat_admins]
+
+    if m.from_user.id not in chat_admins_list:
+        mention = f"<a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name}</a>"
+        if profanity.contains_profanity(m.text):
+            swear_jar_counter.append(m.from_user.id)
+            swear_count = swear_jar_counter.count(m.from_user.id)
+            if 3 <= swear_count < 6:
+                owe_value = swear_count * 10
+                await m.reply(
+                    text=f"Hey {mention}! I guess you need to consider that you are at <b>a public chat</b> i.e. "
+                         f"talk with some respect! You owe {Emoji.MONEY_WITH_WINGS} <i>${owe_value}</i> "
+                         f"{Emoji.MONEY_WITH_WINGS} to Swearjar now, once you reach <b>$60</b> you will be "
+                         f"restricted for a day from sending messages within this chat.",
+                    parse_mode="html"
+                )
+            elif swear_count == 6:
+                swear_jar_counter = [x for x in swear_jar_counter if x != m.from_user.id]
+                await c.restrict_chat_member(chat_id=m.chat.id,
+                                             user_id=m.from_user.id,
+                                             permissions= ChatPermissions(
+                                                 can_send_messages=False),
+                                             until_date=int(time.time()+86400))
+                await m.reply_text(
+                    text=f"{Emoji.EXPLODING_HEAD} Ok that is enough {mention}! Now be restricted for "
+                         f"the next {Emoji.ALARM_CLOCK} 24HRS."
+                )
