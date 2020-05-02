@@ -64,19 +64,12 @@ async def swear_jar_reset_counter(c: Client, m: Message):
                     )
                     await reset_counter(m.chat.id, exp_user.user.id)
                 else:
-                    if split_input[1][1] == "@":
-                        exp_user = split_input[1][1:]
-                        exp_user = await c.get_chat_member(
-                            chat_id=RoanuCommon.roanu_butler_chat,
-                            user_id=exp_user
-                        )
-                        await reset_counter(m.chat.id, exp_user.user.id)
-                    else:
-                        exp_user = await c.get_chat_member(
-                            chat_id=RoanuCommon.roanu_butler_chat,
-                            user_id=split_input[1]
-                        )
-                        await reset_counter(m.chat.id, exp_user.user.id)
+                    exp_user = split_input[1][1:] if split_input[1][1] == "@" else split_input[1]
+                    exp_user = await c.get_chat_member(
+                        chat_id=RoanuCommon.roanu_butler_chat,
+                        user_id=exp_user
+                    )
+                    await reset_counter(m.chat.id, exp_user.user.id)
             except (UserIdInvalid, UsernameNotOccupied, PeerIdInvalid) as e:
                 await m.reply_text(
                     text=f"Seems that user is not present in this chat anymore. \n"
@@ -84,6 +77,12 @@ async def swear_jar_reset_counter(c: Client, m: Message):
                 )
             except Exception as e:
                 logging.error(str(e))
+        else:
+            await m.reply_text(
+                text="Given format is wrong for the command Reset SwearJar Counter, correct format is: "
+                     "\n<code>!rc user_id/user_name</code>",
+                parse_mode="html"
+            )
 
 
 async def reset_counter(chat_id, user_id):
