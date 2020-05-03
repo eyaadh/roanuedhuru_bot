@@ -20,7 +20,7 @@ async def ocr_photo(c: Client, m: Message):
         img = f"roanu/working_dir/{secrets.token_hex(4)}.jpg"
         await c.download_media(m, file_name=img)
 
-        with PyTessBaseAPI(path="roanu/working_dir/tessaract", psm=PSM.AUTO_OSD) as api:
+        with PyTessBaseAPI(path="roanu/working_dir/tessaract", psm=PSM.AUTO_OSD, lang='eng+Thaana2') as api:
             api.SetImageFile(img)
             ocr_extracted = api.GetUTF8Text()
 
