@@ -13,6 +13,7 @@ class Common:
         self.roanu_api_key = self.config.get("bot-configuration", "api_key")
         self.roanu_workers = int(self.config.get("bot-configuration", "workers"))
         self.roanu_butler_chat = self.config.get("bot-configuration", "butler_chat")
+        self.roanu_user_id = int(self.config.get("bot-configuration", "bot_user_id"))
 
 
 RoanuCommon = Common()
