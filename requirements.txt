@@ -4,4 +4,5 @@ better-profanity==0.6.1
 pyaes==1.6.1
 Pyrogram===0.17.0-async
 PySocks==1.7.1
+tesserocr==2.4.0
 TgCrypto==1.2.0
