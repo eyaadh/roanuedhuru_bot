@@ -24,6 +24,7 @@ prompt-toolkit==3.0.5
 pyaes==1.6.1
 PyDictionary==1.5.2
 Pygments==2.6.1
+pymongo==3.10.1
 Pyrogram===0.17.0-async
 PySocks==1.7.1
 requests==2.23.0
