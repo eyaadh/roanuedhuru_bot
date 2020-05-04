@@ -9,3 +9,8 @@ api_key =
 workers = 200
 butler_chat = CityofAddu
 bot_user_id = 578677817
+[db]
+db_name = roanuedhuru
+username =
+password =
+host_address =
