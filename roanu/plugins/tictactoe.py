@@ -1,4 +1,4 @@
-from pyrogram import Client, Message, Filters, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from pyrogram import Client, Message, Filters, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Emoji
 
 board = [' ' for x in range(10)]
 tic_message = None
@@ -98,7 +98,7 @@ async def tictactoe_command(c: Client, m: Message):
     global tic_message
 
     tic_message = await m.reply_text(
-        text="Yo lets play",
+        text=f"{Emoji.PERSON_FENCING} Lets play {Emoji.PERSON_FENCING}",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
@@ -132,28 +132,47 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
             await update_board(c, cb.message, board)
 
             if await is_winner(board, '✖️'):
-                await cb.answer(f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
-                                f" won the game!.")
+                await c.edit_message_text(
+                    cb.message.chat.id,
+                    cb.message.message_id,
+                    text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} "
+                         f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
+                         f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                )
+                await update_board(c, cb.message, board)
+
             else:
                 should_roanu_play = True
         else:
-            await cb.answer("The position is not free!")
+            await cb.answer(f"The position is not free! {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}")
+
     elif await is_winner(board, '✔️'):
         should_roanu_play = False
-        await cb.answer("Roanu won this game already!")
+        await cb.answer(f"Roanu won this game already! {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}", show_alert=True)
 
     if should_roanu_play:
         if not (await is_winner(board, '✖️')):
             move = await roanu_move()
             if move == 0:
-                await cb.answer("The game is a tie!")
+                await c.edit_message_text(
+                    cb.message.chat.id,
+                    cb.message.message_id,
+                    text=f"{Emoji.CONSTRUCTION} This game is a tie {Emoji.CONSTRUCTION}"
+                )
+                await update_board(c, cb.message, board)
             else:
                 await insert_play("✔️", move)
                 await update_board(c, cb.message, board)
 
                 if await is_winner(board, '✔️'):
-                    await cb.answer("Roanu won this game!")
+                    await c.edit_message_text(
+                        cb.message.chat.id,
+                        cb.message.message_id,
+                        text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} Roanu"
+                             f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                    )
+                    await update_board(c, cb.message, board)
 
         elif await is_winner(board, '✖️'):
             await cb.answer(f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
-                            f" won this game already!.")
+                            f" won this game already!. {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}", show_alert=True)
