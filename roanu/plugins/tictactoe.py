@@ -124,7 +124,7 @@ async def tictactoe_command(c: Client, m: Message):
 @Client.on_callback_query()
 async def cb_tic_query(c: Client, cb: CallbackQuery):
     cb_pos = int(cb.data.strip("tic"))
-    comp_play = False
+    should_roanu_play = False
     if not (await is_winner(board, '✔️')):
         if await is_space_free(cb_pos):
             await cb.answer()
@@ -135,14 +135,14 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
                 await cb.answer(f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
                                 f" won the game!.")
             else:
-                comp_play = True
+                should_roanu_play = True
         else:
             await cb.answer("The position is not free!")
     elif await is_winner(board, '✔️'):
-        comp_play = False
+        should_roanu_play = False
         await cb.answer("Roanu won this game already!")
 
-    if comp_play:
+    if should_roanu_play:
         if not (await is_winner(board, '✖️')):
             move = await roanu_move()
             if move == 0:
