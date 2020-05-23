@@ -147,6 +147,7 @@ async def tictactoe_command(c: Client, m: Message):
 @Client.on_callback_query()
 async def cb_tic_query(c: Client, cb: CallbackQuery):
     global last_updated_message
+    delay = 1.5
 
     cb_pos = int(cb.data.strip("tic"))
     should_roanu_play = False
@@ -161,8 +162,8 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
                 await cb.answer()
                 await insert_play("✖️", cb_pos, board)
                 while True:
-                    if (time.time() - last_updated_message["last_updated"]) < 3:
-                        await asyncio.sleep(3)
+                    if (time.time() - last_updated_message["last_updated"]) < delay:
+                        await asyncio.sleep(delay)
                     else:
                         await update_board(c, cb.message, board)
                         last_updated_message["last_updated"] = time.time()
@@ -170,8 +171,8 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
 
                 if await is_winner(board, '✖️'):
                     while True:
-                        if (time.time() - last_updated_message["last_updated"]) < 3:
-                            await asyncio.sleep(3)
+                        if (time.time() - last_updated_message["last_updated"]) < delay:
+                            await asyncio.sleep(delay)
                         else:
                             await c.edit_message_text(
                                 cb.message.chat.id,
@@ -198,8 +199,8 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
                 move = await roanu_move(board)
                 if move == 0:
                     while True:
-                        if (time.time() - last_updated_message["last_updated"]) < 3:
-                            await asyncio.sleep(3)
+                        if (time.time() - last_updated_message["last_updated"]) < delay:
+                            await asyncio.sleep(delay)
                         else:
                             await c.edit_message_text(
                                 cb.message.chat.id,
@@ -213,8 +214,8 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
                 else:
                     await insert_play("✔️", move, board)
                     while True:
-                        if (time.time() - last_updated_message["last_updated"]) < 3:
-                            await asyncio.sleep(3)
+                        if (time.time() - last_updated_message["last_updated"]) < delay:
+                            await asyncio.sleep(delay)
                         else:
                             await update_board(c, cb.message, board)
                             last_updated_message["last_updated"] = time.time()
@@ -222,8 +223,8 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
 
                     if await is_winner(board, '✔️'):
                         while True:
-                            if (time.time() - last_updated_message["last_updated"]) < 3:
-                                await asyncio.sleep(3)
+                            if (time.time() - last_updated_message["last_updated"]) < delay:
+                                await asyncio.sleep(delay)
                             else:
                                 await c.edit_message_text(
                                     cb.message.chat.id,
