@@ -147,7 +147,7 @@ async def tictactoe_command(c: Client, m: Message):
 @Client.on_callback_query()
 async def cb_tic_query(c: Client, cb: CallbackQuery):
     global last_updated_message
-    delay = 1.5
+    delay = 2.5
 
     cb_pos = int(cb.data.strip("tic"))
     should_roanu_play = False
