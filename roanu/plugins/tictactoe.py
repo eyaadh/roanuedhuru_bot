@@ -69,7 +69,7 @@ async def roanu_move(board):
 
 
 async def update_board(c: Client, m: Message, up_board):
-    await asyncio.sleep(3)      # just a random delay for no reason
+    await asyncio.sleep(1)      # just a random delay for no reason
     await c.edit_message_reply_markup(
         m.chat.id,
         m.message_id,
