@@ -1,5 +1,8 @@
+import asyncio
+import logging
 from roanu.utils.database.ticktactoe import RoanuTicTacToe
 from pyrogram import Client, Message, Filters, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Emoji
+from pyrogram.errors import FloodWait
 
 
 async def insert_play(letter, pos, board):
@@ -66,6 +69,7 @@ async def roanu_move(board):
 
 
 async def update_board(c: Client, m: Message, up_board):
+    await asyncio.sleep(3)      # just a random delay for no reason
     await c.edit_message_reply_markup(
         m.chat.id,
         m.message_id,
@@ -143,17 +147,36 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
             if await is_space_free(cb_pos, board):
                 await cb.answer()
                 await insert_play("✖️", cb_pos, board)
-                await update_board(c, cb.message, board)
+                try:
+                    await update_board(c, cb.message, board)
+                except FloodWait as e:
+                    await asyncio.sleep(e.x)
+                    await update_board(c, cb.message, board)
+                except Exception as e:
+                    logging.error(e)
 
                 if await is_winner(board, '✖️'):
-                    await c.edit_message_text(
-                        cb.message.chat.id,
-                        cb.message.message_id,
-                        text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} "
-                             f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
-                             f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
-                    )
-                    await update_board(c, cb.message, board)
+                    try:
+                        await c.edit_message_text(
+                            cb.message.chat.id,
+                            cb.message.message_id,
+                            text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} "
+                                 f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
+                                 f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                        )
+                        await update_board(c, cb.message, board)
+                    except FloodWait as e:
+                        await asyncio.sleep(e.x)
+                        await c.edit_message_text(
+                            cb.message.chat.id,
+                            cb.message.message_id,
+                            text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} "
+                                 f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
+                                 f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                        )
+                        await update_board(c, cb.message, board)
+                    except Exception as e:
+                        logging.error(e)
 
                 else:
                     should_roanu_play = True
@@ -168,24 +191,52 @@ async def cb_tic_query(c: Client, cb: CallbackQuery):
             if not (await is_winner(board, '✖️')):
                 move = await roanu_move(board)
                 if move == 0:
-                    await c.edit_message_text(
-                        cb.message.chat.id,
-                        cb.message.message_id,
-                        text=f"{Emoji.CONSTRUCTION} This game is a tie {Emoji.CONSTRUCTION}"
-                    )
-                    await update_board(c, cb.message, board)
-                else:
-                    await insert_play("✔️", move, board)
-                    await update_board(c, cb.message, board)
-
-                    if await is_winner(board, '✔️'):
+                    try:
                         await c.edit_message_text(
                             cb.message.chat.id,
                             cb.message.message_id,
-                            text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} Roanu"
-                                 f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                            text=f"{Emoji.CONSTRUCTION} This game is a tie {Emoji.CONSTRUCTION}"
                         )
                         await update_board(c, cb.message, board)
+                    except FloodWait as e:
+                        await c.edit_message_text(
+                            cb.message.chat.id,
+                            cb.message.message_id,
+                            text=f"{Emoji.CONSTRUCTION} This game is a tie {Emoji.CONSTRUCTION}"
+                        )
+                        await update_board(c, cb.message, board)
+                    except Exception as e:
+                        logging.error(e)
+                else:
+                    await insert_play("✔️", move, board)
+                    try:
+                        await update_board(c, cb.message, board)
+                    except FloodWait as e:
+                        await asyncio.sleep(e.x)
+                        await update_board(c, cb.message, board)
+                    except Exception as e:
+                        logging.error(e)
+
+                    if await is_winner(board, '✔️'):
+                        try:
+                            await c.edit_message_text(
+                                cb.message.chat.id,
+                                cb.message.message_id,
+                                text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} Roanu"
+                                     f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                            )
+                            await update_board(c, cb.message, board)
+                        except FloodWait as e:
+                            await asyncio.sleep(e.x)
+                            await c.edit_message_text(
+                                cb.message.chat.id,
+                                cb.message.message_id,
+                                text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} Roanu"
+                                     f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                            )
+                            await update_board(c, cb.message, board)
+                        except Exception as e:
+                            logging.error(e)
 
             elif await is_winner(board, '✖️'):
                 await cb.answer(f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
