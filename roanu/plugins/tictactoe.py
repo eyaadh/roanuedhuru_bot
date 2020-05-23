@@ -1,14 +1,12 @@
+from roanu.utils.database.ticktactoe import RoanuTicTacToe
 from pyrogram import Client, Message, Filters, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Emoji
 
-board = [' ' for x in range(10)]
-tic_message = None
 
-
-async def insert_play(letter, pos):
+async def insert_play(letter, pos, board):
     board[pos] = letter
 
 
-async def is_space_free(pos):
+async def is_space_free(pos, board):
     return board[pos] == ' '
 
 
@@ -30,7 +28,7 @@ async def is_winner(bo, le):
             (bo[9] == le and bo[5] == le and bo[1] == le))  # diagonal
 
 
-async def roanu_move():
+async def roanu_move(board):
     move_possibilities = [x for x, letter in enumerate(board) if letter == ' ' and x != 0]
 
     move = 0
@@ -74,50 +72,60 @@ async def update_board(c: Client, m: Message, up_board):
         InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(f"{board[1]}", callback_data="tic1"),
-                    InlineKeyboardButton(f"{board[2]}", callback_data="tic2"),
-                    InlineKeyboardButton(f"{board[3]}", callback_data="tic3")
+                    InlineKeyboardButton(f"{up_board[1]}", callback_data="tic1"),
+                    InlineKeyboardButton(f"{up_board[2]}", callback_data="tic2"),
+                    InlineKeyboardButton(f"{up_board[3]}", callback_data="tic3")
                 ],
                 [
-                    InlineKeyboardButton(f"{board[4]}", callback_data="tic4"),
-                    InlineKeyboardButton(f"{board[5]}", callback_data="tic5"),
-                    InlineKeyboardButton(f"{board[6]}", callback_data="tic6")
+                    InlineKeyboardButton(f"{up_board[4]}", callback_data="tic4"),
+                    InlineKeyboardButton(f"{up_board[5]}", callback_data="tic5"),
+                    InlineKeyboardButton(f"{up_board[6]}", callback_data="tic6")
                 ],
                 [
-                    InlineKeyboardButton(f"{board[7]}", callback_data="tic7"),
-                    InlineKeyboardButton(f"{board[8]}", callback_data="tic8"),
-                    InlineKeyboardButton(f"{board[9]}", callback_data="tic9")
+                    InlineKeyboardButton(f"{up_board[7]}", callback_data="tic7"),
+                    InlineKeyboardButton(f"{up_board[8]}", callback_data="tic8"),
+                    InlineKeyboardButton(f"{up_board[9]}", callback_data="tic9")
                 ]
             ]
         )
     )
 
+    # update the board:
+    await RoanuTicTacToe().update_board(m.chat.id, m.message_id, up_board)
+
 
 @Client.on_message(Filters.command(commands=['tictactoe'], prefixes=['/', '!']))
 async def tictactoe_command(c: Client, m: Message):
-    global tic_message
-
+    new_board = [' ' for x in range(10)]
     tic_message = await m.reply_text(
         text=f"{Emoji.PERSON_FENCING} Lets play {Emoji.PERSON_FENCING}",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton(f"{board[1]}", callback_data="tic1"),
-                    InlineKeyboardButton(f"{board[2]}", callback_data="tic2"),
-                    InlineKeyboardButton(f"{board[3]}", callback_data="tic3")
+                    InlineKeyboardButton(f"{new_board[1]}", callback_data="tic1"),
+                    InlineKeyboardButton(f"{new_board[2]}", callback_data="tic2"),
+                    InlineKeyboardButton(f"{new_board[3]}", callback_data="tic3")
                 ],
                 [
-                    InlineKeyboardButton(f"{board[4]}", callback_data="tic4"),
-                    InlineKeyboardButton(f"{board[5]}", callback_data="tic5"),
-                    InlineKeyboardButton(f"{board[6]}", callback_data="tic6")
+                    InlineKeyboardButton(f"{new_board[4]}", callback_data="tic4"),
+                    InlineKeyboardButton(f"{new_board[5]}", callback_data="tic5"),
+                    InlineKeyboardButton(f"{new_board[6]}", callback_data="tic6")
                 ],
                 [
-                    InlineKeyboardButton(f"{board[7]}", callback_data="tic7"),
-                    InlineKeyboardButton(f"{board[8]}", callback_data="tic8"),
-                    InlineKeyboardButton(f"{board[9]}", callback_data="tic9")
+                    InlineKeyboardButton(f"{new_board[7]}", callback_data="tic7"),
+                    InlineKeyboardButton(f"{new_board[8]}", callback_data="tic8"),
+                    InlineKeyboardButton(f"{new_board[9]}", callback_data="tic9")
                 ]
             ]
         )
+    )
+
+    # insert the new board to DB:
+    await RoanuTicTacToe().new_game(
+        chat_id=m.chat.id,
+        from_id=m.from_user.id,
+        message_id=tic_message.message_id,
+        board=new_board
     )
 
 
@@ -125,54 +133,70 @@ async def tictactoe_command(c: Client, m: Message):
 async def cb_tic_query(c: Client, cb: CallbackQuery):
     cb_pos = int(cb.data.strip("tic"))
     should_roanu_play = False
-    if not (await is_winner(board, '✔️')):
-        if await is_space_free(cb_pos):
-            await cb.answer()
-            await insert_play("✖️", cb_pos)
-            await update_board(c, cb.message, board)
 
-            if await is_winner(board, '✖️'):
-                await c.edit_message_text(
-                    cb.message.chat.id,
-                    cb.message.message_id,
-                    text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} "
-                         f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
-                         f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
-                )
+    board_document = await RoanuTicTacToe().find_board(cb.message.chat.id, cb.message.message_id)
+    board = board_document["board"]
+    owner = board_document["from_id"]
+
+    if cb.from_user.id == owner:
+        if not (await is_winner(board, '✔️')):
+            if await is_space_free(cb_pos, board):
+                await cb.answer()
+                await insert_play("✖️", cb_pos, board)
                 await update_board(c, cb.message, board)
 
-            else:
-                should_roanu_play = True
-        else:
-            await cb.answer(f"The position is not free! {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}")
-
-    elif await is_winner(board, '✔️'):
-        should_roanu_play = False
-        await cb.answer(f"Roanu won this game already! {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}", show_alert=True)
-
-    if should_roanu_play:
-        if not (await is_winner(board, '✖️')):
-            move = await roanu_move()
-            if move == 0:
-                await c.edit_message_text(
-                    cb.message.chat.id,
-                    cb.message.message_id,
-                    text=f"{Emoji.CONSTRUCTION} This game is a tie {Emoji.CONSTRUCTION}"
-                )
-                await update_board(c, cb.message, board)
-            else:
-                await insert_play("✔️", move)
-                await update_board(c, cb.message, board)
-
-                if await is_winner(board, '✔️'):
+                if await is_winner(board, '✖️'):
                     await c.edit_message_text(
                         cb.message.chat.id,
                         cb.message.message_id,
-                        text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} Roanu"
+                        text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} "
+                             f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
                              f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
                     )
                     await update_board(c, cb.message, board)
 
-        elif await is_winner(board, '✖️'):
-            await cb.answer(f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
-                            f" won this game already!. {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}", show_alert=True)
+                else:
+                    should_roanu_play = True
+            else:
+                await cb.answer(f"The position is not free! {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}")
+
+        elif await is_winner(board, '✔️'):
+            should_roanu_play = False
+            await cb.answer(f"Roanu won this game already! {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}", show_alert=True)
+
+        if should_roanu_play:
+            if not (await is_winner(board, '✖️')):
+                move = await roanu_move(board)
+                if move == 0:
+                    await c.edit_message_text(
+                        cb.message.chat.id,
+                        cb.message.message_id,
+                        text=f"{Emoji.CONSTRUCTION} This game is a tie {Emoji.CONSTRUCTION}"
+                    )
+                    await update_board(c, cb.message, board)
+                else:
+                    await insert_play("✔️", move, board)
+                    await update_board(c, cb.message, board)
+
+                    if await is_winner(board, '✔️'):
+                        await c.edit_message_text(
+                            cb.message.chat.id,
+                            cb.message.message_id,
+                            text=f"{Emoji.PARTY_POPPER} {Emoji.PARTYING_FACE} Roanu"
+                                 f" won this game!. {Emoji.PARTYING_FACE} {Emoji.PARTY_POPPER}"
+                        )
+                        await update_board(c, cb.message, board)
+
+            elif await is_winner(board, '✖️'):
+                await cb.answer(f"{cb.from_user.last_name if cb.from_user.last_name else cb.from_user.username}"
+                                f" won this game already!. {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}", show_alert=True)
+
+    else:
+        owner_user_object = cb.from_user
+        if cb.message.chat.type == "group" or cb.message.chat.type == "supergroup":
+            owner_user_object = await c.get_chat_member(cb.message.chat.id, owner)
+        await cb.answer(f"This game is owned by "
+                        f"{owner_user_object.user.last_name if owner_user_object.user.last_name else owner_user_object.user.username}, "
+                        f"You are not allowed to do a move {Emoji.MAN_GESTURING_NO_DARK_SKIN_TONE}, "
+                        f"if you wish to play a new game send the command "
+                        f"/tictactoe {Emoji.MAN_SHRUGGING_DARK_SKIN_TONE}", show_alert=True)
