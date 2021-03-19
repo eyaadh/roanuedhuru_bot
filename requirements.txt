@@ -19,7 +19,7 @@ ipython-genutils==0.2.0
 jedi==0.17.0
 parso==0.7.0
 pickleshare==0.7.5
-Pillow==7.1.2
+Pillow==8.1.1
 prompt-toolkit==3.0.5
 pyaes==1.6.1
 PyDictionary==1.5.2
