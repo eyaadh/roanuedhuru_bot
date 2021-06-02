@@ -33,5 +33,5 @@ soupsieve==2.0
 tesserocr==2.4.0
 TgCrypto==1.2.0
 traitlets==4.3.3
-urllib3==1.25.9
+urllib3==1.26.5
 wcwidth==0.1.9
